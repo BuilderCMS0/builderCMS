@@ -25,8 +25,8 @@ module.exports = {
     },
 
     cleanObject(obj) {
-        const obj = Object.fromEntries(Object.entries(obj).filter(([_, v]) => v !== undefined))
-        return obj ? obj : {};
+        const trimObj = Object.fromEntries(Object.entries(obj).filter(([_, v]) => v !== undefined))
+        return trimObj ? trimObj : {};
     }
 
 };

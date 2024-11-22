@@ -209,7 +209,7 @@ module.exports = {
           { new: true }
         );
 
-        const accountType = [params?.paymentMode, payment?.payment].includes(PAYMENT_MODE.CASH) ? TYPE_CONSTANTS.CASH : TYPE_CONSTANTS.BANK;
+        const accountType = params.paymentMode == PAYMENT_MODE.CASH ? TYPE_CONSTANTS.CASH : TYPE_CONSTANTS.BANK;
 
         const accountData = cleanObject({
           paymentMode: params?.paymentMode || payment?.paymentMode,
@@ -265,7 +265,7 @@ module.exports = {
             { $set: { remainingAmount: remainingAmount, totalPaidAmount: totalPaidAmount } }
           );
 
-          const accountType = [params.paymentMode, payment.payment].includes(PAYMENT_MODE.CASH) ? TYPE_CONSTANTS.CASH : TYPE_CONSTANTS.BANK;
+          const accountType = params.paymentMode == PAYMENT_MODE.CASH ? TYPE_CONSTANTS.CASH : TYPE_CONSTANTS.BANK;
 
           const accountData = {
             userId: userId,

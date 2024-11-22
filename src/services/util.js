@@ -25,7 +25,8 @@ module.exports = {
     },
 
     cleanObject(obj) {
-        Object.fromEntries(Object.entries(obj).filter(([_, v]) => v !== undefined));
+        const obj = Object.fromEntries(Object.entries(obj).filter(([_, v]) => v !== undefined))
+        return obj ? obj : {};
     }
 
 };

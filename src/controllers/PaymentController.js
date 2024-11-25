@@ -37,6 +37,11 @@ module.exports = {
           newStatus = PAYMENT_STATUS.PENDING;
         }
       }
+
+      if(params.isPaid && !params?.reminderDate) {
+          newStatus = PAYMENT_STATUS.ON_TIME;
+      }
+      
       params.status = newStatus;
 
       const payment = await Payment(params).save();

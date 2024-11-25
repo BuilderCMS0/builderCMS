@@ -19,7 +19,7 @@ module.exports = {
       params.userId = userId;
       params.isManually = true;
 
-      const collectingDate = params?.collectingDate ? moment(params?.collectingDate).format('YYYY-MM-DD') : moment().format('YYYY-MM-DD');
+      const collectingDate = params?.collectingDate ? moment(params?.collectingDate).format('YYYY-MM-DD') : null;
 
       const reminder = params?.reminderDate ? moment(params?.reminderDate).format('YYYY-MM-DD') : null;
 
@@ -38,7 +38,7 @@ module.exports = {
         }
       }
 
-      if(params.isPaid && !params?.reminderDate) {
+      if(params?.isPaid && !params?.reminderDate) {
           newStatus = PAYMENT_STATUS.ON_TIME;
       }
       
@@ -229,8 +229,8 @@ module.exports = {
         return res.ok(updatedPayment, message.message.PAYMENT_UPDATED);
       } else {
         const collectingDate = params.collectingDate;
-        const reminder = moment(payment.reminderDate).format('YYYY-MM-DD');
-        if (collectingDate) {
+        const reminder = payment.reminderDate ? moment(payment.reminderDate).format('YYYY-MM-DD') : null;
+        if (collectingDate && reminder) {
           const collecting = moment(collectingDate).format('YYYY-MM-DD');
           let status = PAYMENT_STATUS.PENDING;
           if ((collecting < reminder) && params.isPaid) {
@@ -243,6 +243,10 @@ module.exports = {
             status = PAYMENT_STATUS.ON_TIME;
           }
           params.status = status
+        }
+
+        if(params?.isPaid && !reminder) {
+          params.status = PAYMENT_STATUS.ON_TIME;
         }
 
         const updatedPayment = await Payment.findOneAndUpdate(

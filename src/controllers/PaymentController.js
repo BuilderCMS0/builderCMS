@@ -67,7 +67,7 @@ module.exports = {
           userId: userId,
           paymentId: payment._id,
           fileId: params.fileId || null,
-          date: todayDate,
+          date: collectingDate,
           partyId: params.partyId,
           transactionType: params.transactionType,
           paymentMode: params.paymentMode,

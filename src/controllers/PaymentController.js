@@ -382,9 +382,9 @@ module.exports = {
             totalPayment: element.partyId?.payment || null,  // For Total Payment
             downPayment: element.partyId?.downPayment || null,  // For Down Payment
             transactionType: element.transactionType == TRANSACTION_CONSTANTS.CREDIT ? 'Credit' : element.transactionType == TRANSACTION_CONSTANTS.DEBIT ? 'Debit' : null,
-            paymentMode: element.paymentMode == PAYMENT_MODE.CASH ? 'Cash' : element.paymentMode == PAYMENT_MODE.CHAQUE ? 'Chaque' : element.paymentMode == PAYMENT_MODE.ETRANSAFER ? 'E-Transfer' : null,
+            paymentMode: element.paymentMode == PAYMENT_MODE.CASH ? 'Cash' : element.paymentMode == PAYMENT_MODE.CHEQUE ? 'Cheque' : element.paymentMode == PAYMENT_MODE.ETRANSAFER ? 'E-Transfer' : null,
             collectingPayment: element.payment || null,  // For Collecting Payment
-            emiType: element.emiType === 2 ? "Master" : "Regular",  // For EMI Type
+            emiType: element.emiType === 3 ? "Down Payment" : element.emiType === 2 ? "Master" : "Regular",  // For EMI Type
             status: element.status ? findStatus(element.status) : null,
           });
 
@@ -416,11 +416,6 @@ module.exports = {
           {
             header: 'Total Payment',
             key: 'totalPayment',
-            width: 20,
-          },
-          {
-            header: 'Down Payment',
-            key: 'downPayment',
             width: 20,
           },
           {
@@ -515,11 +510,10 @@ module.exports = {
             ownerName: element.partyId?.ownerName || null,  // For Party Name
             mobileNo: element.partyId?.mobileNumber || null,  // For Mobile No.
             totalPayment: element.partyId?.payment || null,  // For Total Payment
-            downPayment: element.partyId?.downPayment || null,  // For Down Payment
             transactionType: element.transactionType == TRANSACTION_CONSTANTS.CREDIT ? 'Credit' : element.transactionType == TRANSACTION_CONSTANTS.DEBIT ? 'Debit' : null,
-            paymentMode: element.paymentMode == PAYMENT_MODE.CASH ? 'Cash' : element.paymentMode == PAYMENT_MODE.CHAQUE ? 'Chaque' : element.paymentMode == PAYMENT_MODE.ETRANSAFER ? 'E-Transfer' : null,
+            paymentMode: element.paymentMode == PAYMENT_MODE.CASH ? 'Cash' : element.paymentMode == PAYMENT_MODE.CHEQUE ? 'Cheque' : element.paymentMode == PAYMENT_MODE.ETRANSAFER ? 'E-Transfer' : null,
             collectingPayment: element.payment || null,  // For Collecting Payment
-            emiType: element.emiType === 2 ? "Master" : "Regular",  // For EMI Type
+            emiType: element.emiType === 3 ? "Down Payment" : element.emiType === 2 ? "Master" : "Regular",  // For EMI Type
             status: element.status ? findStatus(element.status) : null,
           });
 
@@ -549,11 +543,6 @@ module.exports = {
           {
             header: 'Total Payment',
             key: 'totalPayment',
-            width: 20,
-          },
-          {
-            header: 'Down Payment',
-            key: 'downPayment',
             width: 20,
           },
           {

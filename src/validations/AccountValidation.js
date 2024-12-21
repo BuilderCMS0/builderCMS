@@ -7,7 +7,7 @@ const createAccount = {
         fileId: Joi.string().custom(objectId).optional(),
         partyId: Joi.string().custom(objectId).optional(),
         transactionType: Joi.number().required().valid(1, 2).optional(), // 1: DEBIT, 2: CREDIT
-        paymentMode: Joi.number().required().valid(1, 2, 3).optional(), // 1: CHAQUE, 2: CASH, 3: ETRANSAFER
+        paymentMode: Joi.number().required().valid(1, 2, 3).optional(), // 1: CHEQUE, 2: CASH, 3: ETRANSAFER
         type: Joi.number().required().valid(1, 2).optional(), // 1: CASH, 2: BANK
         payment: Joi.number().required(),
         bank_name: Joi.string().optional(),

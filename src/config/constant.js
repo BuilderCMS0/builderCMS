@@ -74,7 +74,7 @@ const TRANSACTION_CONSTANTS = {
 };
 
 const PAYMENT_MODE = {
-    CHAQUE: 1,
+    CHEQUE: 1,
     CASH: 2,
     ETRANSAFER: 3,
 };

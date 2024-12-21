@@ -276,7 +276,7 @@ module.exports = {
                         mobileNo: element.partyId?.mobileNumber || null,  // For Mobile No.
                         payment: element.payment || null,  // For Total Payment
                         transactionType: element.transactionType == TRANSACTION_CONSTANTS.CREDIT ? 'Credit' : element.transactionType == TRANSACTION_CONSTANTS.DEBIT ? 'Debit' : null,
-                        paymentMode: element.paymentMode == PAYMENT_MODE.CASH ? 'Cash' : element.paymentMode == PAYMENT_MODE.CHAQUE ? 'Chaque' : element.paymentMode == PAYMENT_MODE.ETRANSAFER ? 'E-Transfer' : null,
+                        paymentMode: element.paymentMode == PAYMENT_MODE.CASH ? 'Cash' : element.paymentMode == PAYMENT_MODE.CHEQUE ? 'Cheque' : element.paymentMode == PAYMENT_MODE.ETRANSAFER ? 'E-Transfer' : null,
                         bankName: element.bank_name || null,  // For Bank Name
                         accountNumber: element.account_number || null,  // For Account Number
                         chequeNumber: element.cheque_number || null,  // For Cheque Number
@@ -408,7 +408,7 @@ module.exports = {
                         mobileNo: element.partyId?.mobileNumber || null,  // For Mobile No.
                         payment: element.payment || null,  // For Total Payment
                         transactionType: element.transactionType == TRANSACTION_CONSTANTS.CREDIT ? 'Credit' : element.transactionType == TRANSACTION_CONSTANTS.DEBIT ? 'Debit' : null,
-                        paymentMode: element.paymentMode == PAYMENT_MODE.CASH ? 'Cash' : element.paymentMode == PAYMENT_MODE.CHAQUE ? 'Chaque' : element.paymentMode == PAYMENT_MODE.ETRANSAFER ? 'E-Transfer' : null,
+                        paymentMode: element.paymentMode == PAYMENT_MODE.CASH ? 'Cash' : element.paymentMode == PAYMENT_MODE.CHEQUE ? 'Cheque' : element.paymentMode == PAYMENT_MODE.ETRANSAFER ? 'E-Transfer' : null,
                         bankName: element.bank_name || null,  // For Bank Name
                         accountNumber: element.account_number || null,  // For Account Number
                         chequeNumber: element.cheque_number || null,  // For Cheque Number
@@ -647,7 +647,7 @@ module.exports = {
                         mobileNo: element.partyId?.mobileNumber || null,  // For Mobile No.
                         payment: element.payment || null,  // For Total Payment
                         transactionType: element.transactionType == TRANSACTION_CONSTANTS.CREDIT ? 'Credit' : element.transactionType == TRANSACTION_CONSTANTS.DEBIT ? 'Debit' : null,
-                        paymentMode: element.paymentMode == PAYMENT_MODE.CASH ? 'Cash' : element.paymentMode == PAYMENT_MODE.CHAQUE ? 'Chaque' : element.paymentMode == PAYMENT_MODE.ETRANSAFER ? 'E-Transfer' : null,
+                        paymentMode: element.paymentMode == PAYMENT_MODE.CASH ? 'Cash' : element.paymentMode == PAYMENT_MODE.CHEQUE ? 'Cheque' : element.paymentMode == PAYMENT_MODE.ETRANSAFER ? 'E-Transfer' : null,
                         bankName: element.bank_name || null,  // For Bank Name
                         accountNumber: element.account_number || null,  // For Account Number
                         chequeNumber: element.cheque_number || null,  // For Cheque Number
@@ -789,7 +789,7 @@ module.exports = {
                         mobileNo: element.partyId?.mobileNumber || null,  // For Mobile No.
                         payment: element.payment || null,  // For Total Payment
                         transactionType: element.transactionType == TRANSACTION_CONSTANTS.CREDIT ? 'Credit' : element.transactionType == TRANSACTION_CONSTANTS.DEBIT ? 'Debit' : null,
-                        paymentMode: element.paymentMode == PAYMENT_MODE.CASH ? 'Cash' : element.paymentMode == PAYMENT_MODE.CHAQUE ? 'Chaque' : element.paymentMode == PAYMENT_MODE.ETRANSAFER ? 'E-Transfer' : null,
+                        paymentMode: element.paymentMode == PAYMENT_MODE.CASH ? 'Cash' : element.paymentMode == PAYMENT_MODE.CHEQUE ? 'Cheque' : element.paymentMode == PAYMENT_MODE.ETRANSAFER ? 'E-Transfer' : null,
                         bankName: element.bank_name || null,  // For Bank Name
                         accountNumber: element.account_number || null,  // For Account Number
                         chequeNumber: element.cheque_number || null,  // For Cheque Number

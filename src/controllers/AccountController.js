@@ -722,7 +722,7 @@ module.exports = {
                 const writeStream = fs.createWriteStream(filePath);
 
                 try {
-                    await CommonService.downloadPdf(accountArray, columns, pathToSave, writeStream, 40);
+                    await CommonService.downloadPdf('Bank Report', accountArray, columns, pathToSave, writeStream, 40);
                 } catch (error) {
                     console.error('Error during PDF generation:', error);
                     return res.serverError(error);
@@ -838,7 +838,7 @@ module.exports = {
                 const writeStream = fs.createWriteStream(filePath);
 
                 try {
-                    await CommonService.downloadPdf(accountArray, columns, pathToSave, writeStream, 40);
+                    await CommonService.downloadPdf('Cash Report', accountArray, columns, pathToSave, writeStream, 40);
                 } catch (error) {
                     console.error('Error during PDF generation:', error);
                     return res.serverError(error);
@@ -980,7 +980,7 @@ module.exports = {
                 const writeStream = fs.createWriteStream(filePath);
 
                 try {
-                    await CommonService.downloadPdf(LedgerArray, columns, pathToSave, writeStream, 40);
+                    await CommonService.downloadPdf('Ledger Report', LedgerArray, columns, pathToSave, writeStream, 40);
                 } catch (error) {
                     console.error('Error during PDF generation:', error);
                     return res.serverError(error);

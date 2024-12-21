@@ -214,7 +214,7 @@ module.exports = {
                 const writeStream = fs.createWriteStream(filePath);
 
                 try {
-                    await CommonService.downloadPdf(dataArray, columnsArray, pathToSave, writeStream, 20);
+                    await CommonService.downloadPdf('', dataArray, columnsArray, pathToSave, writeStream, 20);
                 } catch (error) {
                     console.error('Error during PDF generation:', error);
                     return res.serverError(error);

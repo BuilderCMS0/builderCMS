@@ -123,7 +123,7 @@ module.exports = {
         return expires;
     },
 
-    downloadPdf: async (data = [], columns = [], pathToSave, writeStream, headerHeight = 40) => {
+    downloadPdf: async (title = '', data = [], columns = [], pathToSave, writeStream, headerHeight = 40, headerData = {}) => {
         const doc = new PDFDocument({ margin: 50, size: 'A4', layout: 'landscape' });
 
         if (!fs.existsSync(pathToSave)) {
@@ -132,7 +132,39 @@ module.exports = {
 
         doc.pipe(writeStream);
 
-        const tableTopMargin = 50;
+        // Render Header Section
+        function drawHeaderSection(doc) {
+            const startY = 20; // Top margin
+            doc.fontSize(12).font('Helvetica-Bold').text(title, { align: 'center' });
+            doc.moveDown();
+
+            doc.fontSize(10).font('Helvetica');
+            let headerItems = []
+            if (Object.keys(headerData)?.length > 0) {
+                headerItems = [
+                    { label: 'House No.', value: headerData?.houseNumber || '-' },
+                    { label: 'Party Name', value: headerData?.ownerName || '-' },
+                    { label: 'Mobile No.', value: headerData?.mobileNumber || '-' },
+                    { label: 'Remaining Payment', value: headerData?.remainingPayment || '-' },
+                    { label: 'Complete Payment', value: headerData?.completePayment || '-' },
+                    { label: 'Total Payment', value: headerData?.totalPayment || '-' },
+                ];
+            }
+
+            let currentY = startY;
+            headerItems.forEach((item, index) => {
+                doc.text(`${item.label}: ${item.value}`, 50, currentY + (index * 15));
+            });
+
+            // Add a line after the header
+            const lineY = currentY + headerItems.length * 15 + 10;
+            doc.moveTo(50, lineY).lineTo(doc.page.width - 50, lineY).stroke();
+            return lineY + 20; // Return the new Y position
+        }
+
+        let currentY = drawHeaderSection(doc);
+
+        const tableTopMargin = currentY;
         const pageWidth = doc.page.width;
         const pageHeight = doc.page.height;
         const marginLeft = 20;
@@ -196,7 +228,7 @@ module.exports = {
             return Math.max(...heights) + 10;
         }
 
-        let currentY = tableTopMargin;
+        currentY += 20;
         drawHeaders(doc, currentY);
         currentY += headerHeight + 10;
 

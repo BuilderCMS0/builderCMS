@@ -38,10 +38,10 @@ module.exports = {
         }
       }
 
-      if(params?.isPaid && !params?.reminderDate) {
-          newStatus = PAYMENT_STATUS.ON_TIME;
+      if (params?.isPaid && !params?.reminderDate) {
+        newStatus = PAYMENT_STATUS.ON_TIME;
       }
-      
+
       params.status = newStatus;
 
       const payment = await Payment(params).save();
@@ -245,7 +245,7 @@ module.exports = {
           params.status = status
         }
 
-        if(params?.isPaid && !reminder) {
+        if (params?.isPaid && !reminder) {
           params.status = PAYMENT_STATUS.ON_TIME;
         }
 
@@ -391,6 +391,30 @@ module.exports = {
         }
         const workbook = new excelJS.Workbook();
         const worksheet = workbook.addWorksheet('payment-list');
+
+        const party = await Party.findOne({ _id: req?.body?.filter?.partyId }).lean();
+
+        const headerData = {
+          houseNumber: party?.houseNumber || '-',
+          ownerName: party?.ownerName || '-',
+          mobileNumber: party?.mobileNumber || '-',
+          remainingPayment: party?.remainingAmount || '-',
+          completePayment: party?.totalPaidAmount || '-',
+          totalPayment: party?.payment || '-',
+        };
+
+        const headerItems = [
+          { label: 'Remaining Payment', value: headerData.remainingPayment },
+          { label: 'Complete Payment', value: headerData.completePayment },
+        ];
+
+        headerItems.forEach((item, index) => {
+          const row = worksheet.getRow(index + 2);
+          row.getCell(1).value = item.label;
+          row.getCell(2).value = item.value;
+          row.getCell(1).font = { bold: true };
+          row.getCell(2).alignment = { horizontal: 'left' };
+        });
 
         worksheet.columns = [
           {
@@ -578,8 +602,19 @@ module.exports = {
 
         const writeStream = fs.createWriteStream(filePath);
 
+        const party = await Party.findOne({ _id: req?.body?.filter?.partyId }).lean();
+
+        const headerData = {
+          houseNumber: party?.houseNumber,
+          ownerName: party?.ownerName,
+          mobileNumber: party?.mobileNumber,
+          remainingPayment: party?.remainingAmount,
+          completePayment: party?.totalPaidAmount,
+          totalPayment: party?.payment,
+        };
+
         try {
-          await CommonService.downloadPdf(reminderArray, columns, pathToSave, writeStream, 40);
+          await CommonService.downloadPdf('Payment List', reminderArray, columns, pathToSave, writeStream, 40, headerData);
         } catch (error) {
           console.error('Error during PDF generation:', error);
           return res.serverError(error);

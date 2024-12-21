@@ -97,6 +97,22 @@ const partySchema = mongoose.Schema(
             type: String, 
             default: ''
         },
+        sqRate: {
+            type: String, 
+            default: ''
+        },
+        village: {
+            type: String, 
+            default: ''
+        },
+        city: {
+            type: String, 
+            default: ''
+        },
+        district: {
+            type: String, 
+            default: ''
+        },
         remainingAmount: {
             type: Number, 
             default: 0

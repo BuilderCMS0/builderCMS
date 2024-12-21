@@ -49,7 +49,7 @@ module.exports = {
 
                 if (params?.downPayment) {
 
-                    const newDate = moment(startDate).format('YYYY-MM-DD');
+                    const newDate = moment(params?.bookingDate).format('YYYY-MM-DD');
                     const downPaymentObj = {
                         reminderDate: newDate,
                         collectingDate: newDate,

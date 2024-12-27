@@ -54,7 +54,10 @@ module.exports = {
       if (params.transactionType === TRANSACTION_CONSTANTS.CREDIT && params.isPaid) {
         remainingAmount -= params.payment;
         totalPaidAmount += params.payment;
-      } else if (params.transactionType === TRANSACTION_CONSTANTS.DEBIT) {
+      } else if (params.transactionType === TRANSACTION_CONSTANTS.DEBIT && params.isPaid) {
+        remainingAmount += params.payment;
+        totalPaidAmount -= params.payment;
+      } else if (params.transactionType === TRANSACTION_CONSTANTS.DEBIT && !params.isPaid) {
         remainingAmount += params.payment;
       } else if (params.transactionType === TRANSACTION_CONSTANTS.CREDIT && !params.isPaid) {
         remainingAmount += params.payment;
@@ -267,6 +270,7 @@ module.exports = {
             totalPaidAmount += params.payment;
           } else if (params.transactionType === TRANSACTION_CONSTANTS.DEBIT) {
             remainingAmount += params.payment;
+            totalPaidAmount -= params.payment;
           }
 
           await Party.updateOne(

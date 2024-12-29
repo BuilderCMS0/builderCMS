@@ -101,7 +101,7 @@ router
         validate(accountValidation.getAccount),
         accountController.getAccount
     )
-    .patch(
+    .post(
         auth('manageAccounts'),
         validate(accountValidation.updateAccount),
         accountController.updateAccount

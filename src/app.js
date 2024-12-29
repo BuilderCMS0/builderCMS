@@ -71,7 +71,9 @@ app.use(mongoSanitize());
 // };
 
 const corsOptions = {
-    origin: '*', 
+    origin: '*',
+    methods: '*', // Allow all HTTP methods
+    allowedHeaders: '*', // Allow all headers
 };
 app.use(cors(corsOptions));
 app.options('*', cors(corsOptions));

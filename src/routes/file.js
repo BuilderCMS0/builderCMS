@@ -66,7 +66,7 @@ router
         validate(fileValidation.getFile),
         fileController.getFile
     )
-    .patch(
+    .post(
         auth('manageFiles'),
         // permission(PAGE_PERMISSION_USER.COMPANIES, 'update'),
         validate(fileValidation.updateFile),

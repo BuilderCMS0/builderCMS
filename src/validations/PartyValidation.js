@@ -27,9 +27,8 @@ const createParty = {
         masterTenure: Joi.number().allow(''),
         houseSize: Joi.string().allow(''),
         sqRate: Joi.string().allow(''),
-        village: Joi.string().allow(''),
-        district: Joi.string().allow(''),
-        city: Joi.string().allow(''),
+        address: Joi.string().allow(''),
+        startMonth: Joi.string().allow(''),
         remainingAmount: Joi.number().allow(''),
         totalPaidAmount: Joi.number().allow(''),
         narration: Joi.string().allow(''),
@@ -81,9 +80,8 @@ const updateParty = {
             masterTenure: Joi.number().allow(''),
             houseSize: Joi.string().allow(''),
             sqRate: Joi.string().allow(''),
-            village: Joi.string().allow(''),
-            district: Joi.string().allow(''),
-            city: Joi.string().allow(''),
+            startMonth: Joi.string().allow(''),
+            address: Joi.string().allow(''),
             remainingAmount: Joi.number().allow(''),
             totalPaidAmount: Joi.number().allow(''),
             narration: Joi.string().allow(''),
@@ -96,6 +94,12 @@ const deleteParty = {
     body: Joi.object().keys({
         fileId: Joi.string().required().custom(objectId),
         partyIdArray: Joi.array().required(),
+    }),
+};
+
+const cancelParty = {
+    body: Joi.object().keys({
+        partyId: Joi.string().required().custom(objectId),
     }),
 };
 
@@ -115,5 +119,6 @@ module.exports = {
     getParty,
     updateParty,
     deleteParty,
-    createStaff
+    createStaff,
+    cancelParty
 };

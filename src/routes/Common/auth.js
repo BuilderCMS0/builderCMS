@@ -43,7 +43,7 @@ router
     );
 
 router
-    .patch(
+    .post(
         '/update-profile',
         auth('manageProfile'),
         validate(authValidation.updateProfile),

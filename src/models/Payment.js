@@ -19,39 +19,44 @@ const paymentSchema = mongoose.Schema({
         ref: 'Party',
         default: null
     },
-    reminderDate: { 
-        type: String,  
+    toThirdStaff: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Party',
+        default: null
+    },
+    reminderDate: {
+        type: String,
         default: ''
     },
-    transactionType: { 
-        type: Number, 
-        enum: convertObjectToEnum(TRANSACTION_CONSTANTS), 
+    transactionType: {
+        type: Number,
+        enum: convertObjectToEnum(TRANSACTION_CONSTANTS),
         default: null // debit incoming money
     },
-    paymentMode: { 
-        type: Number, 
+    paymentMode: {
+        type: Number,
         enum: convertObjectToEnum(PAYMENT_MODE),
         default: null
     },
-    emiType: { 
-        type: Number, 
+    emiType: {
+        type: Number,
         enum: convertObjectToEnum(EMI_TYPE),
         default: null
     },
-    payment: { 
-        type: Number, 
-        required: true 
+    payment: {
+        type: Number,
+        required: true
     },
-    collectingDate: { 
-        type: String, 
-        required: false 
+    collectingDate: {
+        type: String,
+        required: false
     },
-    createdAt: { 
-        type: Date, 
-        default: '' 
+    createdAt: {
+        type: Date,
+        default: ''
     },
-    narration: { 
-        type: String, 
+    narration: {
+        type: String,
         required: false,
         default: ''
     },
@@ -76,6 +81,10 @@ const paymentSchema = mongoose.Schema({
         enum: convertObjectToEnum(PAYMENT_STATUS),
         default: PAYMENT_STATUS.PENDING
     },
+    isExtra: {
+        type: Boolean,
+        default: false
+    },
     isPaid: {
         type: Boolean,
         default: false
@@ -84,15 +93,15 @@ const paymentSchema = mongoose.Schema({
         type: Boolean,
         default: false
     },
-    createdBy: { 
-        type: mongoose.Schema.Types.ObjectId, 
-        ref: 'User', 
+    createdBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
         default: null
     },
-    updatedBy: { 
-        type: mongoose.Schema.Types.ObjectId, 
-        ref: 'User', 
-        required: false 
+    updatedBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: false
     }
 }, {
     versionKey: false // set to false then it wont create in mongodb

@@ -51,13 +51,15 @@ module.exports = {
       let remainingAmount = partyDetail.remainingAmount;
       let totalPaidAmount = partyDetail.totalPaidAmount;
 
-      if (params.transactionType === TRANSACTION_CONSTANTS.CREDIT && params.isPaid) {
-        remainingAmount -= params.payment;
-        totalPaidAmount += params.payment;
-      } else if (params.transactionType === TRANSACTION_CONSTANTS.DEBIT) {
-        remainingAmount += params.payment;
-      } else if (params.transactionType === TRANSACTION_CONSTANTS.CREDIT && !params.isPaid) {
-        remainingAmount += params.payment;
+      if (!params.isExtra) {
+        if (params.transactionType === TRANSACTION_CONSTANTS.CREDIT && params.isPaid) {
+          remainingAmount -= params.payment;
+          totalPaidAmount += params.payment;
+        } else if (params.transactionType === TRANSACTION_CONSTANTS.DEBIT) {
+          remainingAmount += params.payment;
+        } else if (params.transactionType === TRANSACTION_CONSTANTS.CREDIT && !params.isPaid) {
+          remainingAmount += params.payment;
+        }
       }
 
       await Party.updateOne(
@@ -88,6 +90,29 @@ module.exports = {
 
         await Account(accountData).save();
 
+        if (params.toThirdStaff) {
+          const accountType = params.paymentMode === PAYMENT_MODE.CASH ? TYPE_CONSTANTS.CASH : TYPE_CONSTANTS.BANK;
+
+          const accountData = {
+            userId: userId,
+            fileId: params.fileId,
+            date: collectingDate,
+            partyId: params.toThirdStaff,
+            transactionType: params.transactionType == TRANSACTION_CONSTANTS.CREDIT ? TRANSACTION_CONSTANTS.DEBIT : TRANSACTION_CONSTANTS.CREDIT,
+            paymentMode: params.paymentMode,
+            type: accountType,
+            payment: params.payment,
+            bank_name: params.bankName || null,
+            account_number: params.accountNumber || null,
+            cheque_number: params.chequeNumber || null,
+            cheque_date: params.chequeDate || null,
+            narration: params.narration || '',
+            createdBy: userId
+          };
+
+          await Account(accountData).save();
+
+        }
       }
 
       return res.ok(payment, message.message.PAYMENT_CREATED);
@@ -224,8 +249,27 @@ module.exports = {
           cheque_number: params?.chequeNumber || payment?.chequeNumber,
           cheque_date: params?.chequeDate || payment?.chequeDate,
         });
-
         await Account.findOneAndUpdate({ paymentId: req.params.paymentId }, accountData);
+
+        if (params.toThirdStaff) {
+          const accountData = {
+            userId: userId,
+            fileId: payment.fileId,
+            date: params.collectingDate || moment().format('YYYY-MM-DD'),
+            partyId: params.toThirdStaff,
+            transactionType: params.transactionType == TRANSACTION_CONSTANTS.CREDIT ? TRANSACTION_CONSTANTS.DEBIT : TRANSACTION_CONSTANTS.CREDIT,
+            paymentMode: params.paymentMode,
+            type: accountType,
+            payment: params.payment,
+            bank_name: params.bankName || null,
+            account_number: params.accountNumber || null,
+            cheque_number: params.chequeNumber || null,
+            cheque_date: params.chequeDate || null,
+            narration: params.narration || '',
+            createdBy: userId
+          };
+          await Account(accountData).save();
+        }
         return res.ok(updatedPayment, message.message.PAYMENT_UPDATED);
       } else {
         const collectingDate = params.collectingDate;
@@ -262,11 +306,13 @@ module.exports = {
           let remainingAmount = partyDetail.remainingAmount;
           let totalPaidAmount = partyDetail.totalPaidAmount;
 
-          if (params.transactionType === TRANSACTION_CONSTANTS.CREDIT) {
-            remainingAmount -= params.payment;
-            totalPaidAmount += params.payment;
-          } else if (params.transactionType === TRANSACTION_CONSTANTS.DEBIT) {
-            remainingAmount += params.payment;
+          if (!params.isExtra) {
+            if (params.transactionType === TRANSACTION_CONSTANTS.CREDIT) {
+              remainingAmount -= params.payment;
+              totalPaidAmount += params.payment;
+            } else if (params.transactionType === TRANSACTION_CONSTANTS.DEBIT) {
+              remainingAmount += params.payment;
+            }
           }
 
           await Party.updateOne(
@@ -297,6 +343,28 @@ module.exports = {
           const account = new Account(accountData);
           await account.save();
 
+          if (params.toThirdStaff) {
+            const accountData = {
+              userId: userId,
+              fileId: params.fileId || payment.fileId,
+              date: collectingDate || moment().format('YYYY-MM-DD'),
+              partyId: params.toThirdStaff,
+              transactionType: params.transactionType ? params.transactionType == TRANSACTION_CONSTANTS.CREDIT ? TRANSACTION_CONSTANTS.DEBIT : TRANSACTION_CONSTANTS.CREDIT : payment.transactionType == TRANSACTION_CONSTANTS.CREDIT ? TRANSACTION_CONSTANTS.DEBIT : TRANSACTION_CONSTANTS.CREDIT,
+              paymentMode: params.paymentMode || payment.paymentMode,
+              type: accountType,
+              payment: params.payment || payment.payment,
+              bank_name: params.bankName || payment.bankName,
+              account_number: params.accountNumber || payment.accountNumber,
+              cheque_number: params.chequeNumber || payment.chequeNumber,
+              cheque_date: params.chequeDate || payment.chequeDate,
+              narration: params.narration || payment.narration,
+              createdBy: userId
+            };
+
+            const account = new Account(accountData);
+            await account.save();
+
+          }
         }
         return res.ok(updatedPayment, message.message.PAYMENT_UPDATED);
       }
@@ -371,12 +439,32 @@ module.exports = {
         .lean();
 
       if (paymentsDetails && paymentsDetails.length > 0) {
+        const party = await Party.findOne({ _id: req?.body?.filter?.partyId }).lean();
+
+        let totalBalance = party?.payment;
+        let mastCounter = 0
+        let regCounter = 0;
+
         const reminderArray = [];
         for (let index = 0; index < paymentsDetails.length; index++) {
           const element = paymentsDetails[index];
+
+          let displayIndex;
+          if (element?.emiType == 2) {
+            mastCounter++;
+            displayIndex = 'M' + ' - ' + mastCounter;
+          } else if (element?.emiType == 1) {
+            regCounter++;
+            displayIndex = 'R' + ' - ' + regCounter;
+          } else {
+            displayIndex = '-';
+          }
+
           reminderArray.push({
+            srNo: displayIndex,
             houseNumber: element.partyId?.houseNumber || null,  // For House No.
-            reminderDate: element.reminderDate || null,  // For Reminder Date
+            reminderDate: element.reminderDate ? moment(element.reminderDate, 'YYYY-MM-DD').format('DD-MM-YYYY') : null,  // For Reminder Date
+            collectingDate: element.collectingDate ? moment(element.collectingDate).format('DD-MM-YYYY') : null,  // For Reminder Date
             ownerName: element.partyId?.ownerName || null,  // For Party Name
             mobileNo: element.partyId?.mobileNumber || null,  // For Mobile No.
             totalPayment: element.partyId?.payment || null,  // For Total Payment
@@ -384,15 +472,16 @@ module.exports = {
             transactionType: element.transactionType == TRANSACTION_CONSTANTS.CREDIT ? 'Credit' : element.transactionType == TRANSACTION_CONSTANTS.DEBIT ? 'Debit' : null,
             paymentMode: element.paymentMode == PAYMENT_MODE.CASH ? 'Cash' : element.paymentMode == PAYMENT_MODE.CHEQUE ? 'Cheque' : element.paymentMode == PAYMENT_MODE.ETRANSAFER ? 'E-Transfer' : null,
             collectingPayment: element.payment || null,  // For Collecting Payment
-            emiType: element.emiType === 3 ? "Down Payment" : element.emiType === 2 ? "Master" : "Regular",  // For EMI Type
+            emiType: element.emiType === 3 ? "Down Payment" : element.emiType === 2 ? "Master" : element.emiType === 1 ? "Regular" : '',  // For EMI Type
             status: element.status ? findStatus(element.status) : null,
+            balance: totalBalance - element.payment,
           });
 
+          totalBalance = totalBalance - element.payment;
         }
         const workbook = new excelJS.Workbook();
         const worksheet = workbook.addWorksheet('payment-list');
 
-        const party = await Party.findOne({ _id: req?.body?.filter?.partyId }).lean();
 
         const headerData = {
           houseNumber: party?.houseNumber || '-',
@@ -417,6 +506,144 @@ module.exports = {
         });
 
         worksheet.columns = [
+          { header: 'No', key: 'srNo', width: 20, },
+          {
+            header: 'Reminder Date',
+            key: 'reminderDate',
+            width: 20,
+          },
+          {
+            header: 'Collecting Date',
+            key: 'collectingDate',
+            width: 20,
+          },
+          {
+            header: 'Status',
+            key: 'status',
+            width: 20,
+          },
+          {
+            header: 'EMI Type',
+            key: 'emiType',
+            width: 15,
+          },
+          {
+            header: 'Transaction Type',
+            key: 'transactionType',
+            width: 15,
+          },
+          {
+            header: 'Payment Mode',
+            key: 'paymentMode',
+            width: 15,
+          },
+          {
+            header: 'Collecting Payment',
+            key: 'collectingPayment',
+            width: 20,
+          },
+          {
+            header: 'Balance Amount',
+            key: 'balance',
+            width: 15,
+          },
+        ];
+
+        worksheet.addRows(reminderArray);
+        const pathToSave = path.join(__dirname, '../../excels-generated');
+        const fileName = `payment-list-${Date.now()}.xlsx`;
+        const filePath = `${pathToSave}/${fileName}`;
+        workbook.xlsx
+          .writeFile(filePath)
+          .then(() => {
+            res.download(filePath, function (error) {
+              if (error) {
+                console.log(res.headersSent);
+              }
+              fs.unlink(filePath, function (err) {
+                if (err) {
+                  console.log('err :>> ', err);
+                }
+                console.log('Excel file deleted successfully');
+              });
+            });
+          })
+          .catch((error) => {
+            return res.notFound(error, message.message.FAILED_EXCEL_RESPONSE);
+          });
+      } else {
+        return res.notFound({}, message.message.DATA_NOT_FOUND);
+      }
+
+    } catch (error) {
+      console.log("Payment getExcelPayments Error::>", error);
+      return res.serverError(error);
+    }
+  },
+
+  async getExcelReminder(req, res) {
+    try {
+      if (!req.body || !req.body.filter) {
+        req.body.filter = {};
+      }
+      if (!req.body.sort) {
+        req.body.sort = { reminderDate: 1 }
+      }
+      const filter = await CommonService.getFilter(req.body);
+      filter.where.userId = req.user._id;
+
+      const paymentsDetails = await Payment.find(filter.where)
+        .populate('partyId', {
+          isStaff: 1,
+          houseNumber: 1,
+          ownerName: 1,
+          mobileNumber: 1,
+          payment: 1,
+          downPayment: 1,
+        })
+        .sort(filter.sort)
+        .lean();
+
+      if (paymentsDetails && paymentsDetails.length > 0) {
+        let mastCounter = 0
+        let regCounter = 0;
+        const reminderArray = [];
+        for (let index = 0; index < paymentsDetails.length; index++) {
+
+          const element = paymentsDetails[index];
+          let displayIndex;
+          if (element?.emiType == 2) {
+            mastCounter++;
+            displayIndex = 'M' + ' - ' + mastCounter;
+          } else if (element?.emiType == 1) {
+            regCounter++;
+            displayIndex = 'R' + ' - ' + regCounter;
+          } else {
+            displayIndex = '-';
+          }
+
+          reminderArray.push({
+            srNo: displayIndex,
+            houseNumber: element.partyId?.houseNumber || null,  // For House No.
+            reminderDate: element.reminderDate ? moment(element.reminderDate, 'YYYY-MM-DD').format('DD-MM-YYYY') : null,  // For Reminder Date
+            collectingDate: element.collectingDate ? moment(element.collectingDate).format('DD-MM-YYYY') : null,  // For Reminder Date
+            ownerName: element.partyId?.ownerName || null,  // For Party Name
+            mobileNo: element.partyId?.mobileNumber || null,  // For Mobile No.
+            totalPayment: element.partyId?.payment || null,  // For Total Payment
+            downPayment: element.partyId?.downPayment || null,  // For Down Payment
+            transactionType: element.transactionType == TRANSACTION_CONSTANTS.CREDIT ? 'Credit' : element.transactionType == TRANSACTION_CONSTANTS.DEBIT ? 'Debit' : null,
+            paymentMode: element.paymentMode == PAYMENT_MODE.CASH ? 'Cash' : element.paymentMode == PAYMENT_MODE.CHEQUE ? 'Cheque' : element.paymentMode == PAYMENT_MODE.ETRANSAFER ? 'E-Transfer' : null,
+            collectingPayment: element.payment || null,  // For Collecting Payment
+            emiType: element.emiType === 3 ? "Down Payment" : element.emiType === 2 ? "Master" : element.emiType === 1 ? "Regular" : '',  // For EMI Type
+            status: element.status ? findStatus(element.status) : null,
+          });
+
+        }
+        const workbook = new excelJS.Workbook();
+        const worksheet = workbook.addWorksheet('payment-list');
+
+        worksheet.columns = [
+          { header: 'No', key: 'srNo', width: 20, },
           {
             header: 'House No.',
             key: 'houseNumber',
@@ -425,6 +652,11 @@ module.exports = {
           {
             header: 'Reminder Date',
             key: 'reminderDate',
+            width: 20,
+          },
+          {
+            header: 'Collecting Date',
+            key: 'collectingDate',
             width: 20,
           },
           {
@@ -525,54 +757,50 @@ module.exports = {
         .lean();
 
       if (paymentsDetails && paymentsDetails.length > 0) {
+
+        const party = await Party.findOne({ _id: req?.body?.filter?.partyId }).lean();
         const reminderArray = [];
+        let totalBalance = party?.payment;
         for (let index = 0; index < paymentsDetails.length; index++) {
           const element = paymentsDetails[index];
           reminderArray.push({
             houseNumber: element.partyId?.houseNumber || null,  // For House No.
-            reminderDate: element.reminderDate || null,  // For Reminder Date
+            reminderDate: element.reminderDate ? moment(element.reminderDate, 'YYYY-MM-DD').format('DD-MM-YYYY') : null,  // For Reminder Date
+            collectingDate: element.collectingDate ? moment(element.collectingDate).format('DD-MM-YYYY') : null,  // For Reminder Date
             ownerName: element.partyId?.ownerName || null,  // For Party Name
             mobileNo: element.partyId?.mobileNumber || null,  // For Mobile No.
             totalPayment: element.partyId?.payment || null,  // For Total Payment
             transactionType: element.transactionType == TRANSACTION_CONSTANTS.CREDIT ? 'Credit' : element.transactionType == TRANSACTION_CONSTANTS.DEBIT ? 'Debit' : null,
             paymentMode: element.paymentMode == PAYMENT_MODE.CASH ? 'Cash' : element.paymentMode == PAYMENT_MODE.CHEQUE ? 'Cheque' : element.paymentMode == PAYMENT_MODE.ETRANSAFER ? 'E-Transfer' : null,
             collectingPayment: element.payment || null,  // For Collecting Payment
-            emiType: element.emiType === 3 ? "Down Payment" : element.emiType === 2 ? "Master" : "Regular",  // For EMI Type
+            emiType: element.emiType === 3 ? "Down Payment" : element.emiType === 2 ? "Master" : element.emiType === 1 ? "Regular" : '',  // For EMI Type
             status: element.status ? findStatus(element.status) : null,
+            balance: totalBalance - element.payment,
           });
+          totalBalance = totalBalance - element.payment;
 
         }
 
         const columns = [
-          {
-            header: 'House No.',
-            key: 'houseNumber',
-            width: 20,
-          },
           {
             header: 'Reminder Date',
             key: 'reminderDate',
             width: 20,
           },
           {
-            header: 'Party Name',
-            key: 'ownerName',
-            width: 25,
-          },
-          {
-            header: 'Mobile No.',
-            key: 'mobileNo',
+            header: 'Collecting Date',
+            key: 'collectingDate',
             width: 20,
           },
           {
-            header: 'Total Payment',
-            key: 'totalPayment',
+            header: 'Status',
+            key: 'status',
             width: 20,
           },
           {
-            header: 'Collecting Payment',
-            key: 'collectingPayment',
-            width: 20,
+            header: 'EMI Type',
+            key: 'emiType',
+            width: 15,
           },
           {
             header: 'Transaction Type',
@@ -585,14 +813,14 @@ module.exports = {
             width: 15,
           },
           {
-            header: 'EMI Type',
-            key: 'emiType',
-            width: 15,
+            header: 'Collecting Payment',
+            key: 'collectingPayment',
+            width: 20,
           },
           {
-            header: 'Status',
-            key: 'status',
-            width: 20,
+            header: 'Balance Amount',
+            key: 'balance',
+            width: 15,
           },
         ];
 
@@ -602,7 +830,6 @@ module.exports = {
 
         const writeStream = fs.createWriteStream(filePath);
 
-        const party = await Party.findOne({ _id: req?.body?.filter?.partyId }).lean();
 
         const headerData = {
           houseNumber: party?.houseNumber,
@@ -614,7 +841,7 @@ module.exports = {
         };
 
         try {
-          await CommonService.downloadPdf('Payment List', reminderArray, columns, pathToSave, writeStream, 40, headerData);
+          await CommonService.downloadPaymentPdf('Payment List', reminderArray, columns, pathToSave, writeStream, 40, headerData);
         } catch (error) {
           console.error('Error during PDF generation:', error);
           return res.serverError(error);
@@ -650,6 +877,151 @@ module.exports = {
       return res.serverError(error);
     }
   },
+
+  async getPdfReminder(req, res) {
+    try {
+      if (!req.body || !req.body.filter) {
+        req.body.filter = {};
+      }
+      if (!req.body.sort) {
+        req.body.sort = { reminderDate: 1 }
+      }
+      const filter = await CommonService.getFilter(req.body);
+      filter.where.userId = req.user._id;
+
+      const paymentsDetails = await Payment.find(filter.where)
+        .populate('partyId', {
+          isStaff: 1,
+          houseNumber: 1,
+          ownerName: 1,
+          mobileNumber: 1,
+          payment: 1,
+          downPayment: 1,
+        })
+        .sort(filter.sort)
+        .lean();
+
+      if (paymentsDetails && paymentsDetails.length > 0) {
+        const reminderArray = [];
+        for (let index = 0; index < paymentsDetails.length; index++) {
+          const element = paymentsDetails[index];
+          reminderArray.push({
+            houseNumber: element.partyId?.houseNumber || null,  // For House No.
+            reminderDate: element.reminderDate ? moment(element.reminderDate, 'YYYY-MM-DD').format('DD-MM-YYYY') : null,  // For Reminder Date
+            collectingDate: element.collectingDate ? moment(element.collectingDate).format('DD-MM-YYYY') : null,  // For Reminder Date
+            ownerName: element.partyId?.ownerName || null,  // For Party Name
+            mobileNo: element.partyId?.mobileNumber || null,  // For Mobile No.
+            totalPayment: element.partyId?.payment || null,  // For Total Payment
+            transactionType: element.transactionType == TRANSACTION_CONSTANTS.CREDIT ? 'Credit' : element.transactionType == TRANSACTION_CONSTANTS.DEBIT ? 'Debit' : null,
+            paymentMode: element.paymentMode == PAYMENT_MODE.CASH ? 'Cash' : element.paymentMode == PAYMENT_MODE.CHEQUE ? 'Cheque' : element.paymentMode == PAYMENT_MODE.ETRANSAFER ? 'E-Transfer' : null,
+            collectingPayment: element.payment || null,  // For Collecting Payment
+            emiType: element.emiType === 3 ? "Down Payment" : element.emiType === 2 ? "Master" : element.emiType === 1 ? "Regular" : '',  // For EMI Type
+            status: element.status ? findStatus(element.status) : null,
+          });
+        }
+
+        const columns = [
+          {
+            header: 'House No.',
+            key: 'houseNumber',
+            width: 20,
+          },
+          {
+            header: 'Party Name',
+            key: 'ownerName',
+            width: 25,
+          },
+          {
+            header: 'Mobile No.',
+            key: 'mobileNo',
+            width: 20,
+          },
+          {
+            header: 'Reminder Date',
+            key: 'reminderDate',
+            width: 20,
+          },
+          {
+            header: 'Collecting Date',
+            key: 'collectingDate',
+            width: 20,
+          },
+          {
+            header: 'Total Payment',
+            key: 'totalPayment',
+            width: 20,
+          },
+          {
+            header: 'Collecting Payment',
+            key: 'collectingPayment',
+            width: 20,
+          },
+          {
+            header: 'Transaction Type',
+            key: 'transactionType',
+            width: 15,
+          },
+          {
+            header: 'Payment Mode',
+            key: 'paymentMode',
+            width: 15,
+          },
+          {
+            header: 'EMI Type',
+            key: 'emiType',
+            width: 15,
+          },
+          {
+            header: 'Status',
+            key: 'status',
+            width: 20,
+          },
+        ];
+
+        const pathToSave = path.join(__dirname, '../../excels-generated');
+        const fileName = `reminder-list-${Date.now()}.pdf`;
+        const filePath = path.join(pathToSave, fileName);
+
+        const writeStream = fs.createWriteStream(filePath);
+
+        try {
+          await CommonService.downloadReminderPdf('Reminder List', reminderArray, columns, pathToSave, writeStream, 40);
+        } catch (error) {
+          console.error('Error during PDF generation:', error);
+          return res.serverError(error);
+        }
+        writeStream.on('finish', function () {
+          try {
+            res.download(filePath, fileName, (err) => {
+              if (err) {
+                console.error('Error downloading the file:', err);
+              }
+              fs.unlink(filePath, function (err) {
+                if (err) {
+                  console.log('err :>> ', err);
+                }
+                console.log('Pdf file deleted successfully');
+              });
+            });
+          } catch (error) {
+            return res.serverError(error);
+          }
+        });
+
+        writeStream.on('error', function (err) {
+          console.error('Error writing the PDF file:', err);
+          return res.serverError(err);
+        });
+      } else {
+        return res.notFound({}, message.message.DATA_NOT_FOUND);
+      }
+
+    } catch (error) {
+      console.log("Payment getPdfPayments Error::>", error);
+      return res.serverError(error);
+    }
+  },
+
 
 };
 

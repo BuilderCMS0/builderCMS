@@ -56,13 +56,21 @@ router
     );
 
 router
+    .route('/cancel-party')
+    .post(
+        auth('manageParties'),
+        validate(partyValidation.cancelParty),
+        partyController.cancelParty
+    );
+
+router
     .route('/:partyId')
     .get(
         auth('manageParties'),
         validate(partyValidation.getParty),
         partyController.getParty
     )
-    .patch(
+    .post(
         auth('manageParties'),
         validate(partyValidation.updateParty),
         partyController.updateParty

@@ -44,15 +44,15 @@ const partySchema = mongoose.Schema(
             }
         ],
         brokerName: {
-            type: String, 
+            type: String,
             default: ''
         },
         brokerMobileNumber: {
-            type: String, 
+            type: String,
             default: ''
         },
         bookingDate: {
-            type: String, 
+            type: String,
             default: null
         },
         payment: {
@@ -60,15 +60,15 @@ const partySchema = mongoose.Schema(
             default: 0
         },
         downPayment: {
-            type: Number, 
+            type: Number,
             default: 0
         },
         month: {
-            type: Number, 
+            type: Number,
             default: 0
         },
         regularEMI: {
-            type: Number, 
+            type: Number,
             default: 0
         },
         regularTenure: {
@@ -77,11 +77,15 @@ const partySchema = mongoose.Schema(
             enum: convertObjectToEnum(TENURE)
         },
         reminderDateRegular: {
-            type: String, 
+            type: String,
             default: '01'
         },
+        startMonth: {
+            type: String,
+            default: ''
+        },
         masterEMI: {
-            type: Number, 
+            type: Number,
             default: 0
         },
         masterTenure: {
@@ -90,44 +94,40 @@ const partySchema = mongoose.Schema(
             enum: convertObjectToEnum(TENURE)
         },
         reminderDateMaster: {
-            type: String, 
+            type: String,
             default: '01'
         },
         houseSize: {
-            type: String, 
+            type: String,
             default: ''
         },
         sqRate: {
-            type: String, 
+            type: String,
             default: ''
         },
-        village: {
-            type: String, 
-            default: ''
-        },
-        city: {
-            type: String, 
-            default: ''
-        },
-        district: {
-            type: String, 
+        address: {
+            type: String,
             default: ''
         },
         remainingAmount: {
-            type: Number, 
+            type: Number,
             default: 0
         },
         totalPaidAmount: {
-            type: Number, 
+            type: Number,
             default: 0
         },
         narration: {
-            type: String, 
+            type: String,
             default: ''
         },
-        condition: { 
-            type: String, 
+        condition: {
+            type: String,
             default: ''
+        },
+        isCancelled: {
+            type: Boolean,
+            default: false
         },
         createdBy: {
             type: mongoose.Schema.Types.ObjectId,

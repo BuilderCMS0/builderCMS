@@ -39,11 +39,27 @@ router
   );
 
 router
+  .route('/reminder/download-xls')
+  .post(
+    auth('getPayments'),
+    validate(paymentValidation.getPayments),
+    paymentController.getExcelReminder
+  );
+
+router
   .route('/download-pdf')
   .post(
     auth('getPayments'),
     validate(paymentValidation.getPayments),
     paymentController.getPdfPayments
+  );
+
+router
+  .route('/reminder/download-pdf')
+  .post(
+    auth('getPayments'),
+    validate(paymentValidation.getPayments),
+    paymentController.getPdfReminder
   );
 
 router
@@ -53,7 +69,10 @@ router
     validate(paymentValidation.getPayment),
     paymentController.getPayment
   )
-  .patch(
+
+router
+  .route('/:paymentId')
+  .post(
     auth('managePayments'),
     validate(paymentValidation.updatePayment),
     paymentController.updatePayment

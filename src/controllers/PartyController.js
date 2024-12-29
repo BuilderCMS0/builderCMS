@@ -19,15 +19,9 @@ module.exports = {
             params.createdBy = userId;
             params.isStaff = false;
 
-            const partyByHouse = await PartyRead.findOne({ houseNumber: params.houseNumber, fileId: params.fileId, userId: params.userId }).lean();
-
-            if (partyByHouse) {
-                return res.badRequest(null, message.message.HOUSE_EXIST);
-            }
-
             params.totalPaidAmount = params?.downPayment || 0;
 
-            let startDate = moment(params?.bookingDate).add(1, 'months').toISOString();
+            let startDate = params?.startMonth ? moment(params?.startMonth, 'YYYY-MM').toISOString() : moment(params?.bookingDate).add(1, 'months').toISOString();
             let emiObj = await calculateEMI(params?.payment, params?.downPayment, params?.month, params?.regularEMI, startDate, params?.regularTenure, params?.masterEMI, params?.masterTenure, params?.reminderDateRegular, params?.reminderDateMaster);
             let { emiListArray, closingAmount } = emiObj
             params.remainingAmount = closingAmount || 0;
@@ -72,19 +66,6 @@ module.exports = {
                 await Payment.insertMany(enrichedEmiSchedule);
             }
             const payments = await Payment.find({ partyId: party._id }).lean();
-            if (params.fileId) {
-                const filesDetail = await FilesRead.findOne({ _id: params.fileId }).lean();
-                await Files.findOneAndUpdate(
-                    { _id: params.fileId },
-                    {
-                        $set: {
-                            remaining_house: filesDetail.remaining_house - 1,
-                            sold_house: filesDetail.sold_house + 1
-                        }
-                    },
-                    { new: true }
-                );
-            }
 
             const downPaymentObj = payments && payments?.length > 0 && payments?.find((payment) => payment.emiType == EMI_TYPE.DOWN_PAYMENT)
             if (params?.downPayment && downPaymentObj) {
@@ -249,30 +230,36 @@ module.exports = {
             req.body.partyIdArray = req.body.partyIdArray.map(p => new ObjectId(p));
             if (req.body.partyIdArray && req.body.partyIdArray.length > 0) {
                 const userId = req.user._id;
-                const numberOfDeletedParties = req.body.partyIdArray.length;
 
                 await Party.deleteMany({ _id: req.body.partyIdArray, userId: userId });
-
-                const fileId = req?.body?.fileId;
-                if (fileId) {
-                    const filesDetail = await FilesRead.findOne({ _id: fileId }).lean();
-                    await Files.findOneAndUpdate(
-                        { _id: fileId },
-                        {
-                            $set: {
-                                remaining_house: filesDetail.remaining_house + numberOfDeletedParties,
-                                sold_house: filesDetail.sold_house - numberOfDeletedParties
-                            }
-                        },
-                        { new: true }
-                    );
-                }
 
                 await Payment.deleteMany({ partyId: req.body.partyIdArray, userId: userId });
 
                 await Account.deleteMany({ partyId: req.body.partyIdArray, userId: userId });
 
                 return res.ok(null, message.message.PARTY_DELETED);
+            }
+            return res.notFound({}, message.message.PARTY_LIST_NOT_FOUND);
+        } catch (error) {
+            console.log("Party deletion error", error);
+            return res.serverError(error);
+        }
+    },
+
+    async cancelParty(req, res) {
+        try {
+            if (req.body.partyId) {
+                const userId = req.user._id;
+
+                await Party.findOneAndUpdate(
+                    { _id: req.body.partyId },
+                    { $set: { isCancelled: true } },
+                    { new: true }
+                );
+
+                await Payment.deleteMany({ partyId: req.body.partyId, isPaid: false, userId: userId });
+
+                return res.ok(null, message.message.PARTY_CANCELLED);
             }
             return res.notFound({}, message.message.PARTY_LIST_NOT_FOUND);
         } catch (error) {

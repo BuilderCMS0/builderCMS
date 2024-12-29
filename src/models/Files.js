@@ -13,14 +13,6 @@ const fileSchema = mongoose.Schema(
             type: Number,
             default: 0
         },
-        remaining_house: {
-            type: Number,
-            default: 0
-        },
-        sold_house: {
-            type: Number,
-            default: 0
-        },
         createdBy: {
             type: mongoose.Schema.Types.ObjectId,
             ref: 'User',

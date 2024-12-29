@@ -184,6 +184,11 @@ module.exports = {
             message: 'Party deleted successfully.',
             status: 200,
         },
+        PARTY_CANCELLED: {
+            code: 'OK',
+            message: 'Party cancelled successfully.',
+            status: 200,
+        },
         ACCOUNT_NOT_FOUND: {
             code: 'E_NOT_FOUND',
             message: 'Account record not found.',

@@ -14,8 +14,6 @@ module.exports = {
             let userId = loggedInUser._id;
             req.body.userId = userId;
             req.body.createdBy = userId;
-            req.body.remaining_house = req.body.house;
-            req.body.sold_house = 0;
 
             const files = await Files(req.body).save();
             if (!req?.user?.selectedCompany) {

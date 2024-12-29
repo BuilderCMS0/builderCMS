@@ -257,6 +257,298 @@ module.exports = {
         doc.end();
     },
 
+    downloadReminderPdf: async (title = '', data = [], columns = [], pathToSave, writeStream, headerHeight = 40, headerData = {}) => {
+        const doc = new PDFDocument({ margin: 50, size: 'A4', layout: 'landscape' });
+
+        if (!fs.existsSync(pathToSave)) {
+            fs.mkdirSync(pathToSave, { recursive: true });
+        }
+
+        doc.pipe(writeStream);
+
+        // Render Header Section
+        function drawHeaderSection(doc) {
+            const startY = 20; // Top margin
+            doc.fontSize(12).font('Helvetica-Bold').text(title, { align: 'center' });
+            doc.moveDown();
+
+            doc.fontSize(10).font('Helvetica');
+            let headerItems = []
+            if (Object.keys(headerData)?.length > 0) {
+                headerItems = [
+                    { label: 'House No.', value: headerData?.houseNumber || '-' },
+                    { label: 'Party Name', value: headerData?.ownerName || '-' },
+                    { label: 'Mobile No.', value: headerData?.mobileNumber || '-' },
+                    { label: 'Remaining Payment', value: headerData?.remainingPayment || '-' },
+                    { label: 'Complete Payment', value: headerData?.completePayment || '-' },
+                    { label: 'Total Payment', value: headerData?.totalPayment || '-' },
+                ];
+            }
+
+            let currentY = startY;
+            headerItems.forEach((item, index) => {
+                doc.text(`${item.label}: ${item.value}`, 50, currentY + (index * 15));
+            });
+
+            // Add a line after the header
+            const lineY = currentY + headerItems.length * 15 + 10;
+            doc.moveTo(50, lineY).lineTo(doc.page.width - 50, lineY).stroke();
+            return lineY + 20; // Return the new Y position
+        }
+
+        let currentY = drawHeaderSection(doc);
+
+        const tableTopMargin = currentY;
+        const pageWidth = doc.page.width;
+        const pageHeight = doc.page.height;
+        const marginLeft = 20;
+        const marginRight = 20;
+        const usableHeight = pageHeight - tableTopMargin - 50;
+        const usableWidth = pageWidth - marginLeft - marginRight;
+
+        const srNoWidth = 40;
+        const colWidth = (usableWidth - srNoWidth) / columns.length;
+
+        const srNoColumn = { header: 'No', key: 'srNo' };
+        const updatedColumns = [srNoColumn, ...columns];
+
+        function drawHeaders(doc, y) {
+            doc.fontSize(10).font('Helvetica-Bold');
+
+            doc.text(srNoColumn.header, marginLeft, y, { width: srNoWidth, align: 'center' });
+
+            updatedColumns.slice(1).forEach((col, index) => {
+                doc.text(col.header, marginLeft + srNoWidth + colWidth * index, y, { width: colWidth, align: 'center' });
+            });
+
+            const headerY = y + headerHeight;
+            doc.moveTo(marginLeft, headerY).lineTo(marginLeft + usableWidth, headerY).stroke();
+
+            let x = marginLeft;
+            doc.moveTo(x, y).lineTo(x, headerY).stroke();
+            x += srNoWidth;
+            for (let i = 1; i <= updatedColumns.length; i++) {
+                doc.moveTo(x, y).lineTo(x, headerY).stroke();
+                if (i < updatedColumns.length) {
+                    x += colWidth;
+                }
+            }
+        }
+
+        function drawRowBorders(doc, y, rowHeight) {
+            if (isNaN(rowHeight)) {
+                return;
+            }
+
+            doc.moveTo(marginLeft, y).lineTo(marginLeft + usableWidth, y).stroke();
+
+            let x = marginLeft;
+            doc.moveTo(x, y - rowHeight).lineTo(x, y).stroke();
+            x += srNoWidth;
+            for (let i = 1; i <= updatedColumns.length; i++) {
+                doc.moveTo(x, y - rowHeight).lineTo(x, y).stroke();
+                if (i < updatedColumns.length) {
+                    x += colWidth;
+                }
+            }
+        }
+
+        function getRowHeight(doc, item) {
+            const heights = updatedColumns.map((col, index) => {
+                const textWidth = index === 0 ? srNoWidth : colWidth; // Use correct width for SR No.
+                const height = doc.heightOfString(item[col.key] || '-', { width: textWidth });
+                return height;
+            });
+            return Math.max(...heights) + 10;
+        }
+
+        currentY += 20;
+        drawHeaders(doc, currentY);
+        currentY += headerHeight + 10;
+        let regCounter = 0;
+        let mastCounter = 0
+        data.forEach((item, index) => {
+            const rowHeight = getRowHeight(doc, item);
+
+            if (currentY + rowHeight > usableHeight) {
+                doc.addPage();
+                currentY = tableTopMargin;
+                drawHeaders(doc, currentY);
+                currentY += headerHeight + 10;
+            }
+
+            let displayIndex;
+            if (item?.emiType == 'Master') {
+                mastCounter++;
+                displayIndex = 'M' + ' - ' + mastCounter;
+            } else if (item?.emiType == 'Regular') {
+                regCounter++;
+                displayIndex = 'R' + ' - ' + regCounter;
+            } else {
+                displayIndex = '-';
+            }
+
+            doc.fontSize(10).font('Helvetica').text(displayIndex, marginLeft, currentY + 5, { width: srNoWidth, align: 'center' });
+
+            updatedColumns.slice(1).forEach((col, colIndex) => {
+                doc.fontSize(10).font('Helvetica').text(item[col.key] || '-', marginLeft + srNoWidth + colWidth * colIndex, currentY + 5, { width: colWidth, align: 'center' });
+            });
+
+            drawRowBorders(doc, currentY + rowHeight, rowHeight);
+            currentY += rowHeight;
+        });
+
+        drawRowBorders(doc, currentY);
+
+        doc.end();
+    },
+
+    downloadPaymentPdf: async (title = '', data = [], columns = [], pathToSave, writeStream, headerHeight = 40, headerData = {}) => {
+        const doc = new PDFDocument({ margin: 50, size: 'A4', layout: 'landscape' });
+
+        if (!fs.existsSync(pathToSave)) {
+            fs.mkdirSync(pathToSave, { recursive: true });
+        }
+
+        doc.pipe(writeStream);
+
+        // Render Header Section
+        function drawHeaderSection(doc) {
+            const startY = 20; // Top margin
+            doc.fontSize(12).font('Helvetica-Bold').text(title, { align: 'center' });
+            doc.moveDown();
+
+            doc.fontSize(10).font('Helvetica');
+            let headerItems = []
+            if (Object.keys(headerData)?.length > 0) {
+                headerItems = [
+                    { label: 'House No.', value: headerData?.houseNumber || '-' },
+                    { label: 'Party Name', value: headerData?.ownerName || '-' },
+                    { label: 'Mobile No.', value: headerData?.mobileNumber || '-' },
+                    { label: 'Remaining Payment', value: headerData?.remainingPayment || '-' },
+                    { label: 'Complete Payment', value: headerData?.completePayment || '-' },
+                    { label: 'Total Payment', value: headerData?.totalPayment || '-' },
+                ];
+            }
+
+            let currentY = startY;
+            headerItems.forEach((item, index) => {
+                doc.text(`${item.label}: ${item.value}`, 50, currentY + (index * 15));
+            });
+
+            // Add a line after the header
+            const lineY = currentY + headerItems.length * 15 + 10;
+            doc.moveTo(50, lineY).lineTo(doc.page.width - 50, lineY).stroke();
+            return lineY + 20; // Return the new Y position
+        }
+
+        let currentY = drawHeaderSection(doc);
+
+        const tableTopMargin = currentY;
+        const pageWidth = doc.page.width;
+        const pageHeight = doc.page.height;
+        const marginLeft = 20;
+        const marginRight = 20;
+        const usableHeight = pageHeight - tableTopMargin - 50;
+        const usableWidth = pageWidth - marginLeft - marginRight;
+
+        const srNoWidth = 40;
+        const colWidth = (usableWidth - srNoWidth) / columns.length;
+
+        const srNoColumn = { header: 'No', key: 'srNo' };
+        const updatedColumns = [srNoColumn, ...columns];
+
+        function drawHeaders(doc, y) {
+            doc.fontSize(10).font('Helvetica-Bold');
+
+            doc.text(srNoColumn.header, marginLeft, y, { width: srNoWidth, align: 'center' });
+
+            updatedColumns.slice(1).forEach((col, index) => {
+                doc.text(col.header, marginLeft + srNoWidth + colWidth * index, y, { width: colWidth, align: 'center' });
+            });
+
+            const headerY = y + headerHeight;
+            doc.moveTo(marginLeft, headerY).lineTo(marginLeft + usableWidth, headerY).stroke();
+
+            let x = marginLeft;
+            doc.moveTo(x, y).lineTo(x, headerY).stroke();
+            x += srNoWidth;
+            for (let i = 1; i <= updatedColumns.length; i++) {
+                doc.moveTo(x, y).lineTo(x, headerY).stroke();
+                if (i < updatedColumns.length) {
+                    x += colWidth;
+                }
+            }
+        }
+
+        function drawRowBorders(doc, y, rowHeight) {
+            if (isNaN(rowHeight)) {
+                return;
+            }
+
+            doc.moveTo(marginLeft, y).lineTo(marginLeft + usableWidth, y).stroke();
+
+            let x = marginLeft;
+            doc.moveTo(x, y - rowHeight).lineTo(x, y).stroke();
+            x += srNoWidth;
+            for (let i = 1; i <= updatedColumns.length; i++) {
+                doc.moveTo(x, y - rowHeight).lineTo(x, y).stroke();
+                if (i < updatedColumns.length) {
+                    x += colWidth;
+                }
+            }
+        }
+
+        function getRowHeight(doc, item) {
+            const heights = updatedColumns.map((col, index) => {
+                const textWidth = index === 0 ? srNoWidth : colWidth; // Use correct width for SR No.
+                const height = doc.heightOfString(item[col.key] || '-', { width: textWidth });
+                return height;
+            });
+            return Math.max(...heights) + 10;
+        }
+
+        currentY += 20;
+        drawHeaders(doc, currentY);
+        currentY += headerHeight + 10;
+        let regCounter = 0;
+        let mastCounter = 0
+        data.forEach((item, index) => {
+            const rowHeight = getRowHeight(doc, item);
+
+            if (currentY + rowHeight > usableHeight) {
+                doc.addPage();
+                currentY = tableTopMargin;
+                drawHeaders(doc, currentY);
+                currentY += headerHeight + 10;
+            }
+
+            let displayIndex;
+            if (item?.emiType == 'Master') {
+                mastCounter++;
+                displayIndex = 'M' + ' - ' + mastCounter;
+            } else if (item?.emiType == 'Regular') {
+                regCounter++;
+                displayIndex = 'R' + ' - ' + regCounter;
+            } else {
+                displayIndex = '-';
+            }
+
+            doc.fontSize(10).font('Helvetica').text(displayIndex, marginLeft, currentY + 5, { width: srNoWidth, align: 'center' });
+
+            updatedColumns.slice(1).forEach((col, colIndex) => {
+                doc.fontSize(10).font('Helvetica').text(item[col.key] || '-', marginLeft + srNoWidth + colWidth * colIndex, currentY + 5, { width: colWidth, align: 'center' });
+            });
+
+            drawRowBorders(doc, currentY + rowHeight, rowHeight);
+            currentY += rowHeight;
+        });
+
+        drawRowBorders(doc, currentY);
+
+        doc.end();
+    },
+
     convertFilterToObjectId: (id) => {
         if (Array.isArray(id)) {
             return id.map(id => new ObjectId(id));

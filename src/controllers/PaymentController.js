@@ -836,6 +836,7 @@ module.exports = {
           ownerName: party?.ownerName,
           mobileNumber: party?.mobileNumber,
           bookingDate: party?.bookingDate ? moment(party?.bookingDate).format('DD-MM-YYYY') : null,
+          startMonth: party?.startMonth ? moment(party?.startMonth).format('MM-YYYY') : null,
           remainingPayment: party?.remainingAmount,
           completePayment: party?.totalPaidAmount,
           totalPayment: party?.payment,

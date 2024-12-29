@@ -429,6 +429,7 @@ module.exports = {
                     { label: 'Total Payment', value: headerData?.totalPayment || '-' },
                     { label: 'Complete Payment', value: headerData?.completePayment || '-' },
                     { label: 'Remaining Payment', value: headerData?.remainingPayment || '-' },
+                    { label: 'EMI Start Month', value: headerData?.startMonth || '-' },
                 ];
             }
 

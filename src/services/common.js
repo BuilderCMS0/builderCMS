@@ -414,31 +414,60 @@ module.exports = {
 
         // Render Header Section
         function drawHeaderSection(doc) {
-            const startY = 20; // Top margin
-            doc.fontSize(12).font('Helvetica-Bold').text(title, { align: 'center' });
-            doc.moveDown();
+            const startX = 50; // Left margin
+            const startY = 40; // Top margin
+            const columnWidth = (doc.page.width - 100) / 4; // Divide page width by 4 columns, leaving margins
+            const rowHeight = 30; // Fixed height for each row
+            const labelValueSpacing = 15; // Space between label and value
 
             doc.fontSize(10).font('Helvetica');
-            let headerItems = []
+
+            let headerItems = [];
             if (Object.keys(headerData)?.length > 0) {
                 headerItems = [
                     { label: 'House No.', value: headerData?.houseNumber || '-' },
                     { label: 'Party Name', value: headerData?.ownerName || '-' },
                     { label: 'Mobile No.', value: headerData?.mobileNumber || '-' },
-                    { label: 'Remaining Payment', value: headerData?.remainingPayment || '-' },
-                    { label: 'Complete Payment', value: headerData?.completePayment || '-' },
+                    { label: 'Booking Date', value: headerData?.bookingDate || '-' },
                     { label: 'Total Payment', value: headerData?.totalPayment || '-' },
+                    { label: 'Complete Payment', value: headerData?.completePayment || '-' },
+                    { label: 'Remaining Payment', value: headerData?.remainingPayment || '-' },
                 ];
             }
 
+            let currentX = startX;
             let currentY = startY;
+
             headerItems.forEach((item, index) => {
-                doc.text(`${item.label}: ${item.value}`, 50, currentY + (index * 15));
+                // Draw the border for the box
+                doc.rect(currentX, currentY, columnWidth, rowHeight).stroke();
+
+                // Render label inside the box
+                doc.font('Helvetica-Bold').text(`${item.label}:`, currentX + 5, currentY + 5, {
+                    width: columnWidth - labelValueSpacing,
+                    align: 'left',
+                });
+
+                // Render value inside the box, aligned with spacing
+                doc.font('Helvetica').text(item.value, currentX + doc.widthOfString(`${item.label}:`) + 10, currentY + 5, {
+                    width: columnWidth - labelValueSpacing,
+                    marginLeft: labelValueSpacing,
+                    align: 'left',
+                });
+
+                // Move to the next column or row
+                if ((index + 1) % 4 === 0) {
+                    currentX = startX; // Reset X position for a new row
+                    currentY += rowHeight; // Move down for the next row
+                } else {
+                    currentX += columnWidth; // Move to the next column
+                }
             });
 
-            // Add a line after the header
-            const lineY = currentY + headerItems.length * 15 + 10;
+            // Add a line after the header grid
+            const lineY = currentY + rowHeight; // Slightly below the last row
             doc.moveTo(50, lineY).lineTo(doc.page.width - 50, lineY).stroke();
+
             return lineY + 20; // Return the new Y position
         }
 

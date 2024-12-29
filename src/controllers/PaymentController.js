@@ -985,8 +985,15 @@ module.exports = {
 
         const writeStream = fs.createWriteStream(filePath);
 
+        const headerData = {
+          dateRange: filter.where.reminderDate ? moment(filter.where.reminderDate.$gte).format('DD-MM-YYYY') + ' to ' + moment(filter.where.reminderDate.$lte).format('DD-MM-YYYY') : null,
+          emiType: (!filter.where.emiType || filter.where.emiType?.length == 0) ? 'All' : filter.where.emiType.includes(1) && 'Regular' + ' , ' + filter.where.emiType.includes(2) && 'Master' + ' , ' + filter.where.emiType.includes(3) && 'Down Payment',  // For EMI Type
+          status: (!filter.where.status || filter.where.status?.length == 0) ? 'All' : filter.where.status.includes(1) && 'Pending' + ' , ' + filter.where.status.includes(2) && 'On-Time' + ' , ' + filter.where.status.includes(3) && 'Advanced' + ' , ' + filter.where.status.includes(4) && 'Overdue' + ' , ' + filter.where.status.includes(5) && 'Late Payed',
+        };
+
+
         try {
-          await CommonService.downloadReminderPdf('Reminder List', reminderArray, columns, pathToSave, writeStream, 40);
+          await CommonService.downloadReminderPdf('Reminder List', reminderArray, columns, pathToSave, writeStream, 40, headerData);
         } catch (error) {
           console.error('Error during PDF generation:', error);
           return res.serverError(error);

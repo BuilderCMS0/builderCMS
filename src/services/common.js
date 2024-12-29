@@ -276,12 +276,9 @@ module.exports = {
             let headerItems = []
             if (Object.keys(headerData)?.length > 0) {
                 headerItems = [
-                    { label: 'House No.', value: headerData?.houseNumber || '-' },
-                    { label: 'Party Name', value: headerData?.ownerName || '-' },
-                    { label: 'Mobile No.', value: headerData?.mobileNumber || '-' },
-                    { label: 'Remaining Payment', value: headerData?.remainingPayment || '-' },
-                    { label: 'Complete Payment', value: headerData?.completePayment || '-' },
-                    { label: 'Total Payment', value: headerData?.totalPayment || '-' },
+                    { label: 'Date Range.', value: headerData?.dateRange || '-' },
+                    { label: 'Status', value: headerData?.status || '-' },
+                    { label: 'Emi Type', value: headerData?.emiType || '-' },
                 ];
             }
 

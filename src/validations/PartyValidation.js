@@ -33,6 +33,7 @@ const createParty = {
         totalPaidAmount: Joi.number().allow(''),
         narration: Joi.string().allow(''),
         condition: Joi.string().allow(''),
+        note: Joi.string().allow(''),
     }),
 };
 
@@ -86,6 +87,7 @@ const updateParty = {
             totalPaidAmount: Joi.number().allow(''),
             narration: Joi.string().allow(''),
             condition: Joi.string().allow(''),
+            note: Joi.string().allow(''),
         })
         .min(1),
 };

@@ -123,6 +123,10 @@ const partySchema = mongoose.Schema(
             type: String,
             default: ''
         },
+        note: {
+            type: String,
+            default: ''
+        },
         isCancelled: {
             type: Boolean,
             default: false

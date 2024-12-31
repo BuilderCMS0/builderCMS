@@ -4,7 +4,7 @@ const { Party, PartyRead, Payment, Files, FilesRead, Account } = require('../mod
 const { ObjectId } = require('mongodb');
 const CommonService = require('../services/common');
 const { calculateEMI } = require('../services/party');
-const { PAYMENT_STATUS, TENURE_MONTH_NAME, TRANSACTION_CONSTANTS, EMI_TYPE, TYPE_CONSTANTS, PAYMENT_MODE } = require('../config/constant');
+const { PAYMENT_STATUS, TRANSACTION_CONSTANTS, EMI_TYPE, TYPE_CONSTANTS, PAYMENT_MODE } = require('../config/constant');
 const excelJS = require('exceljs');
 const fs = require('fs');
 const path = require('path');
@@ -333,10 +333,10 @@ module.exports = {
                         downPayment: element.downPayment ?? null,
                         month: element.month ?? null,
                         regularEMI: element.regularEMI ?? null,
-                        regularTenure: TENURE_MONTH_NAME[element.regularTenure] ?? null,
+                        regularTenure: element.regularTenure ?? null,
                         reminderDateRegular: element.reminderDateRegular ?? null,
                         masterEMI: element.masterEMI ?? null,
-                        masterTenure: TENURE_MONTH_NAME[element.masterTenure] ?? null,
+                        masterTenure: element.masterTenure ?? null,
                         reminderDateMaster: element.reminderDateMaster ?? null,
                         remainingAmount: element.remainingAmount ?? null,
                         totalPaidAmount: element.totalPaidAmount ?? null,
@@ -521,10 +521,10 @@ module.exports = {
                         downPayment: element.downPayment || null,
                         month: element.month || null,
                         regularEMI: element.regularEMI || null,
-                        regularTenure: TENURE_MONTH_NAME[element.regularTenure] || null,
+                        regularTenure: element.regularTenure || null,
                         reminderDateRegular: element.reminderDateRegular || null,
                         masterEMI: element.masterEMI || null,
-                        masterTenure: TENURE_MONTH_NAME[element.masterTenure] || null,
+                        masterTenure: element.masterTenure || null,
                         reminderDateMaster: element.reminderDateMaster || null,
                         remainingAmount: element.remainingAmount || null,
                         totalPaidAmount: element.totalPaidAmount || null,

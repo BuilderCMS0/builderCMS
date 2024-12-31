@@ -74,7 +74,6 @@ const partySchema = mongoose.Schema(
         regularTenure: {
             type: Number,
             default: TENURE.MONTHLY,
-            enum: convertObjectToEnum(TENURE)
         },
         reminderDateRegular: {
             type: String,
@@ -91,7 +90,6 @@ const partySchema = mongoose.Schema(
         masterTenure: {
             type: Number,
             default: null,
-            enum: convertObjectToEnum(TENURE)
         },
         reminderDateMaster: {
             type: String,

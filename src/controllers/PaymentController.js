@@ -232,7 +232,7 @@ module.exports = {
         return res.notFound(null, message.message.PAYMENT_NOT_FOUND);
       }
 
-      if (payment?.emiType == EMI_TYPE.DOWN_PAYMENT) {
+      if (payment?.emiType == EMI_TYPE.DOWN_PAYMENT && payment?.isPaid) {
         const updatedPayment = await Payment.findOneAndUpdate(
           { _id: req.params.paymentId },
           { $set: params },

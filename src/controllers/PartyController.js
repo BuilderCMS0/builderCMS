@@ -374,12 +374,12 @@ module.exports = {
                         width: 20,
                     },
                     {
-                        header: 'Broker Name',
+                        header: 'Representor Name',
                         key: 'brokerName',
                         width: 20,
                     },
                     {
-                        header: 'Broker Mobile Number',
+                        header: 'Representor Mobile Number',
                         key: 'brokerMobileNumber',
                         width: 20,
                     },

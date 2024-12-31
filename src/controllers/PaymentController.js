@@ -273,7 +273,7 @@ module.exports = {
         return res.ok(updatedPayment, message.message.PAYMENT_UPDATED);
       } else {
         const collectingDate = params.collectingDate;
-        const reminder = payment.reminderDate ? moment(payment.reminderDate).format('YYYY-MM-DD') : null;
+        const reminder = params?.reminderDate ? moment(params.reminderDate).format('YYYY-MM-DD') : payment.reminderDate ? moment(payment.reminderDate).format('YYYY-MM-DD') : null;
         if (collectingDate && reminder) {
           const collecting = moment(collectingDate).format('YYYY-MM-DD');
           let status = PAYMENT_STATUS.PENDING;

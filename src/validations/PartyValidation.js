@@ -25,7 +25,7 @@ const createParty = {
         regularTenure: Joi.number().required(),
         masterEMI: Joi.number().allow(''),
         masterTenure: Joi.number().allow(''),
-        houseSize: Joi.string().allow(''),
+        houseSize: Joi.string().required(''),
         sqRate: Joi.string().allow(''),
         address: Joi.string().allow(''),
         startMonth: Joi.string().allow(''),

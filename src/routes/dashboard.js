@@ -3,6 +3,7 @@ const auth = require('../middlewares/auth');
 const validate = require('../middlewares/validate');
 const accountValidation = require('../validations/AccountValidation');
 const dashboardController = require('../controllers/DashboardController');
+const { generatePdfController } = require('../controllers');
 
 const router = express.Router();
 
@@ -44,6 +45,13 @@ router
         auth('manageDashboard'),
         validate(accountValidation.getDownloadData),
         dashboardController.getDownloadedPdf
+    );
+
+router
+    .route('/download-invoice')
+    .get(
+        auth('manageDashboard'),
+        generatePdfController.generateInvoice
     );
 
 module.exports = router;

@@ -1,10 +1,8 @@
-const mongoose = require('mongoose');
-const {http, app} = require('./app');
+const { http, app } = require('./app');
 const config = require('./config/config');
 const logger = require('./config/logger');
-// const fs = require("fs");
-// const path = require('path');
-// const { createSession } = require('./services/WhatsappConnection');
+const routes = require('./routes');
+const { closeBrowserInstance } = require('./controllers/GeneratePdfController');
 
 let server;
 // mongoose.createConnection(config.mongoose.url, config.mongoose.options);
@@ -33,12 +31,22 @@ const unexpectedErrorHandler = (error) => {
 process.on('uncaughtException', unexpectedErrorHandler);
 process.on('unhandledRejection', unexpectedErrorHandler);
 
-process.on('SIGTERM', () => {
-    logger.info('SIGTERM received');
+process.on('exit', closeBrowserInstance);
+process.on('SIGINT', async () => {
+    logger.info('SIGINT received');
+    await closeBrowserInstance();
     if (server) {
         server.close();
     }
+    process.exit(0);
 });
-const routes = require('./routes');
+process.on('SIGTERM', async () => {
+    logger.info('SIGTERM received');
+    await closeBrowserInstance();
+    if (server) {
+        server.close();
+    }
+    process.exit(0);
+});
 
 app.use(routes);

@@ -111,6 +111,9 @@ app.use(function (req, res, next) {
     };
     next();
 });
+
+app.locals.templates = {};
+app.locals.browserInstance = null;
 // app.get('/events/:id', eventsHandler);
 
 // jwt authentication

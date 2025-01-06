@@ -50,7 +50,6 @@ router
 router
     .route('/download-invoice')
     .get(
-        auth('manageDashboard'),
         generatePdfController.generateInvoice
     );
 

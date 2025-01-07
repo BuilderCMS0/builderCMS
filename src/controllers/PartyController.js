@@ -253,12 +253,14 @@ module.exports = {
 
                 const paymentArr = await Payment.find(
                     { partyId: req.body.partyId, isPaid: false, userId: userId },
-                    '_id payment transactionType'
+                    '_id payment transactionType isExtra'
                 ).lean() || [];
 
                 const partyDetail = await PartyRead.findOne({ _id: req.body.partyId }).lean();
 
-                const paymentTotal = paymentArr.reduce((sum, payment) => sum + payment?.payment, 0);
+                const filterArr = paymentArr?.filter((payment) => !payment?.isExtra)
+
+                const paymentTotal = filterArr?.reduce((sum, payment) => sum + payment?.payment, 0);
 
                 const remainingAmount = partyDetail?.remainingAmount + paymentTotal;
 

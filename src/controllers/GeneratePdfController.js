@@ -5,13 +5,14 @@ const readFile = utils.promisify(fs.readFile);
 const puppeteer = require('puppeteer');
 const hb = require('handlebars');
 const { app } = require('../app');
-
+const chromium = require('chromium');
 let browserInstance = app.locals.browserInstance;
 
 const getBrowserInstance = async () => {
     if (!browserInstance) {
         browserInstance = await puppeteer.launch({
-            headless: true,
+            headless: 'shell',
+            executablePath: chromium.path,
             args: ['--no-sandbox', '--disable-setuid-sandbox'],
         });
         app.locals.browserInstance = browserInstance;

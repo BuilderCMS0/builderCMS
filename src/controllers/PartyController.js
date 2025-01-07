@@ -256,14 +256,14 @@ module.exports = {
                     '_id payment transactionType'
                 ).lean() || [];
 
-                const partyDetail = await PartyRead.findOne({ _id: params.partyId }).lean();
+                const partyDetail = await PartyRead.findOne({ _id: req.body.partyId }).lean();
 
                 const paymentTotal = paymentArr.reduce((sum, payment) => sum + payment?.payment, 0);
 
                 const remainingAmount = partyDetail?.remainingAmount + paymentTotal;
 
                 await Party.findOneAndUpdate(
-                    { _id: params.partyId },
+                    { _id: req.body.partyId },
                     {
                         $set: {
                             remainingAmount: remainingAmount,

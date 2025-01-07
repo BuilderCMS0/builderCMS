@@ -251,9 +251,25 @@ module.exports = {
             if (req.body.partyId) {
                 const userId = req.user._id;
 
+                const paymentArr = await Payment.find(
+                    { partyId: req.body.partyId, isPaid: false, userId: userId },
+                    '_id payment transactionType'
+                ).lean() || [];
+
+                const partyDetail = await PartyRead.findOne({ _id: params.partyId }).lean();
+
+                const paymentTotal = paymentArr.reduce((sum, payment) => sum + payment?.payment, 0);
+
+                const remainingAmount = partyDetail?.remainingAmount + paymentTotal;
+
                 await Party.findOneAndUpdate(
-                    { _id: req.body.partyId },
-                    { $set: { isCancelled: true } },
+                    { _id: params.partyId },
+                    {
+                        $set: {
+                            remainingAmount: remainingAmount,
+                            isCancelled: true
+                        }
+                    },
                     { new: true }
                 );
 

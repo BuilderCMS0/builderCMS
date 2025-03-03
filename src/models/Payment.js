@@ -31,7 +31,7 @@ const paymentSchema = mongoose.Schema({
     transactionType: {
         type: Number,
         enum: convertObjectToEnum(TRANSACTION_CONSTANTS),
-        default: null // debit incoming money
+        default: TRANSACTION_CONSTANTS.CREDIT // debit incoming money
     },
     paymentMode: {
         type: Number,

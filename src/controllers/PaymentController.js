@@ -8,6 +8,7 @@ const excelJS = require('exceljs');
 const fs = require('fs');
 const path = require('path');
 const { cleanObject } = require('../services/util');
+const { calculateCompletePayment } = require('../services/party');
 
 module.exports = {
   async createPayment(req, res) {
@@ -46,26 +47,7 @@ module.exports = {
 
       const payment = await Payment(params).save();
 
-      const partyDetail = await PartyRead.findOne({ _id: params.partyId }).lean();
-
-      let remainingAmount = partyDetail.remainingAmount;
-      let totalPaidAmount = partyDetail.totalPaidAmount;
-
-      if (!params.isExtra) {
-        if (params.transactionType === TRANSACTION_CONSTANTS.CREDIT && params.isPaid) {
-          remainingAmount -= params.payment;
-          totalPaidAmount += params.payment;
-        } else if (params.transactionType === TRANSACTION_CONSTANTS.DEBIT) {
-          remainingAmount += params.payment;
-        } else if (params.transactionType === TRANSACTION_CONSTANTS.CREDIT && !params.isPaid) {
-          remainingAmount += params.payment;
-        }
-      }
-
-      await Party.updateOne(
-        { _id: params.partyId },
-        { $set: { remainingAmount: remainingAmount, totalPaidAmount: totalPaidAmount } }
-      );
+      await calculateCompletePayment(params.partyId, false);
 
       if (params.isPaid) {
         const accountType = params.paymentMode === PAYMENT_MODE.CASH ? TYPE_CONSTANTS.CASH : TYPE_CONSTANTS.BANK;
@@ -270,6 +252,9 @@ module.exports = {
           };
           await Account(accountData).save();
         }
+
+        await calculateCompletePayment(params.partyId, false);
+
         return res.ok(updatedPayment, message.message.PAYMENT_UPDATED);
       } else {
         const collectingDate = params.collectingDate;
@@ -301,24 +286,6 @@ module.exports = {
 
         if (!payment.isPaid && params.isPaid) {
 
-          const partyDetail = await PartyRead.findOne({ _id: params.partyId }).lean();
-
-          let remainingAmount = partyDetail.remainingAmount;
-          let totalPaidAmount = partyDetail.totalPaidAmount;
-
-          if (!params.isExtra) {
-            if (params.transactionType === TRANSACTION_CONSTANTS.CREDIT) {
-              remainingAmount -= params.payment;
-              totalPaidAmount += params.payment;
-            } else if (params.transactionType === TRANSACTION_CONSTANTS.DEBIT) {
-              remainingAmount += params.payment;
-            }
-          }
-
-          await Party.updateOne(
-            { _id: params.partyId },
-            { $set: { remainingAmount: remainingAmount, totalPaidAmount: totalPaidAmount } }
-          );
 
           const accountType = params.paymentMode == PAYMENT_MODE.CASH ? TYPE_CONSTANTS.CASH : TYPE_CONSTANTS.BANK;
 
@@ -366,6 +333,9 @@ module.exports = {
 
           }
         }
+
+        await calculateCompletePayment(params.partyId, false);
+
         return res.ok(updatedPayment, message.message.PAYMENT_UPDATED);
       }
 
@@ -382,27 +352,9 @@ module.exports = {
       if (params.paymentIdArray && params.paymentIdArray.length > 0) {
         const userId = req.user._id;
 
-        const paymentArr = await Payment.find(
-          { _id: { $in: params.paymentIdArray }, userId: userId },
-          '_id payment transactionType'
-        ).lean() || [];
-
-        const partyDetail = await PartyRead.findOne({ _id: params.partyId }).lean();
-
-        let paymentTotal = paymentArr.reduce((sum, payment) => sum + payment.payment, 0);
-
-        let remainingAmount = partyDetail.remainingAmount + paymentTotal;
+        await calculateCompletePayment(params.partyId, false);
 
         await Payment.deleteMany({ _id: { $in: params.paymentIdArray }, userId: userId });
-
-        await Party.updateOne(
-          { _id: params.partyId },
-          {
-            $set: {
-              remainingAmount: remainingAmount
-            }
-          }
-        );
 
         await Account.deleteMany({ _id: { $in: params.paymentIdArray }, userId: userId });
 

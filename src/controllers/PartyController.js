@@ -3,7 +3,7 @@ const message = require('../config/message');
 const { Party, PartyRead, Payment, Files, FilesRead, Account } = require('../models');
 const { ObjectId } = require('mongodb');
 const CommonService = require('../services/common');
-const { calculateEMI } = require('../services/party');
+const { calculateEMI, calculateCompletePayment } = require('../services/party');
 const { PAYMENT_STATUS, TRANSACTION_CONSTANTS, EMI_TYPE, TYPE_CONSTANTS, PAYMENT_MODE } = require('../config/constant');
 const excelJS = require('exceljs');
 const fs = require('fs');
@@ -64,6 +64,8 @@ module.exports = {
                     enrichedEmiSchedule.unshift(downPaymentObj)
                 }
                 await Payment.insertMany(enrichedEmiSchedule);
+
+                await calculateCompletePayment(party._id, false);
             }
             const payments = await Payment.find({ partyId: party._id }).lean();
 
@@ -131,6 +133,7 @@ module.exports = {
             const userId = loggedInUser._id;
 
             const party = await Party.findOne({ _id: req.params.partyId, userId: userId }).lean();
+            calculateCompletePayment(party._id, false);
             if (!party) {
                 return res.notFound(null, message.message.PARTY_NOT_FOUND);
             }
@@ -250,30 +253,7 @@ module.exports = {
         try {
             if (req.body.partyId) {
                 const userId = req.user._id;
-
-                const paymentArr = await Payment.find(
-                    { partyId: req.body.partyId, isPaid: false, userId: userId },
-                    '_id payment transactionType isExtra'
-                ).lean() || [];
-
-                const partyDetail = await PartyRead.findOne({ _id: req.body.partyId }).lean();
-
-                const filterArr = paymentArr?.filter((payment) => !payment?.isExtra)
-
-                const paymentTotal = filterArr?.reduce((sum, payment) => sum + payment?.payment, 0);
-
-                const remainingAmount = partyDetail?.remainingAmount + paymentTotal;
-
-                await Party.findOneAndUpdate(
-                    { _id: req.body.partyId },
-                    {
-                        $set: {
-                            remainingAmount: remainingAmount,
-                            isCancelled: true
-                        }
-                    },
-                    { new: true }
-                );
+                await calculateCompletePayment(params.partyId, true);
 
                 await Payment.deleteMany({ partyId: req.body.partyId, isPaid: false, userId: userId });
 

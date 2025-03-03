@@ -1,5 +1,6 @@
 const moment = require('moment'); // Ensure you have moment.js installed
-const { TENURE, EMI_TYPE } = require('../config/constant');
+const { TENURE, EMI_TYPE, TRANSACTION_CONSTANTS } = require('../config/constant');
+const { PaymentRead, PartyRead, Party } = require('../models');
 
 async function calculateEMI(payment = 0, downpayment = 0, months = 0, emiAmount = 0, startDate, tenureType = TENURE.MONTHLY, masterEmi = null, masterTenure = null, reminderRegulerDate = '1', reminderMasterDate = '1') {
     try {
@@ -62,6 +63,49 @@ async function calculateEMI(payment = 0, downpayment = 0, months = 0, emiAmount 
     }
 }
 
+async function calculateCompletePayment(partyId, isCancelled = false) {
+    try {
+        const paymentArr = await PaymentRead.find(
+            { partyId: partyId },
+            '_id payment transactionType isExtra isPaid'
+        ).lean() || [];
+
+        const partyDetail = await PartyRead.findOne({ _id: partyId }).lean()
+
+        const completePaymentArr = paymentArr.filter(t => !t.isExtra && t.isPaid) // Exclude extra transactions
+
+        const completePayment = completePaymentArr.reduce((sum, t) => {
+            return t.transactionType == TRANSACTION_CONSTANTS.CREDIT
+                ? sum + t.payment  // Subtract for CREDIT
+                : t.transactionType == TRANSACTION_CONSTANTS.DEBIT ? sum - t.payment : 0; // Add for DEBIT
+        }, 0);
+        const remainingPaymentArr = paymentArr.filter(t => !t.isExtra)
+        const rPayment = remainingPaymentArr.reduce((sum, t) => {
+            return t.transactionType == TRANSACTION_CONSTANTS.CREDIT
+                ? sum - t.payment  // Subtract for CREDIT
+                : t.transactionType == TRANSACTION_CONSTANTS.DEBIT ? sum + t.payment : 0; // Add for DEBIT
+        }, 0);
+
+        const remainingPayment = Math.max((Number(partyDetail?.payment) || 0) - Math.abs(rPayment), 0);
+        console.log('remainingPayment', partyDetail?.payment, remainingPayment, completePayment);
+
+        await Party.updateOne(
+            { _id: partyId },
+            {
+                $set: {
+                    remainingAmount: remainingPayment, totalPaidAmount: completePayment,
+                    isCancelled: isCancelled
+                }
+            }
+        );
+    } catch (error) {
+        console.log('error', error);
+
+        return false
+    }
+}
+
 module.exports = {
-    calculateEMI
+    calculateEMI,
+    calculateCompletePayment
 }
